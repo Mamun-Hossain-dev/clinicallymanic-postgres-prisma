@@ -1,10 +1,11 @@
 model Banner {
-  id          String       @id @default(uuid())
-  title       String
-  description String
-  image       String
-  type        String
-  status      BannerStatus @default(ACTIVE)
+  id                  String       @id @default(uuid())
+  title               String
+  description         String
+  bannerImageUrl      String?
+  bannerImagePublicId String?
+  category            String
+  status              BannerStatus @default(INACTIVE)
 
   createdById String
   createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
@@ -12,6 +13,9 @@ model Banner {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([category])
+  @@index([status])
+  @@index([createdById])
   @@map("banners")
 }
 

@@ -60,8 +60,6 @@ const getAllUsers = async (
     userRepository.count(whereCondition),
   ])
 
-
-
   const totalPages = Math.ceil(total / limit)
 
   return {
