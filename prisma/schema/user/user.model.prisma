@@ -15,6 +15,7 @@ model User {
   verified             Boolean   @default(true)
   isSubscribed         Boolean   @default(false)
   posts                Post[]
+  banners              Banner[]
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
