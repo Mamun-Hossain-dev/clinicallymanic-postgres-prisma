@@ -37,11 +37,7 @@ const getContentById = catchAsync(async (req: Request, res: Response) => {
 })
 
 const getAllContents = catchAsync(async (req: Request, res: Response) => {
-  const filterOptions = pick(req.query, [
-    'searchTerm',
-    'type',
-    'category',
-  ]) as ContentFilterOptions
+  const filterOptions = pick(req.query, ['searchTerm', 'type', 'category']) as ContentFilterOptions
 
   const paginationOptions = pick(req.query, [
     'page',

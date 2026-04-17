@@ -14,7 +14,14 @@ import { contentRepository } from './content.repository'
 
 // Fields that are valid for each content type. Anything outside this set is rejected on update.
 const allowedFieldsByType: Record<ContentType, ReadonlySet<keyof UpdateContentInput>> = {
-  ARTICLE: new Set(['title', 'description', 'category', 'thumbnailUrl', 'thumbnailPublicId', 'body']),
+  ARTICLE: new Set([
+    'title',
+    'description',
+    'category',
+    'thumbnailUrl',
+    'thumbnailPublicId',
+    'body',
+  ]),
   YOUTUBE: new Set([
     'title',
     'description',

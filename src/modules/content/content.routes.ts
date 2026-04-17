@@ -13,10 +13,10 @@ import {
 
 const router = express.Router()
 
-// Create content with optional thumbnail (admin or user)
+// Create content with optional thumbnail (admin only)
 router.post(
   '/',
-  auth(userRole.admin, userRole.user),
+  auth(userRole.admin),
   fileUploader.upload.single('thumbnail'),
   validateRequest(createContentZodSchema),
   contentController.createContent
@@ -26,26 +26,22 @@ router.post(
 router.get('/', validateRequest(getAllContentQueryZodSchema), contentController.getAllContents)
 
 // Get single content (public)
-router.get(
-  '/:id',
-  validateRequest(getContentParamZodSchema),
-  contentController.getContentById
-)
+router.get('/:id', validateRequest(getContentParamZodSchema), contentController.getContentById)
 
-// Update content (admin or owner — enforced in service)
+// Update content (admin only)
 router.patch(
   '/:id',
-  auth(userRole.admin, userRole.user),
+  auth(userRole.admin),
   fileUploader.upload.single('thumbnail'),
   validateRequest(getContentParamZodSchema),
   validateRequest(updateContentZodSchema),
   contentController.updateContentById
 )
 
-// Delete content (admin or owner — enforced in service)
+// Delete content (admin only)
 router.delete(
   '/:id',
-  auth(userRole.admin, userRole.user),
+  auth(userRole.admin),
   validateRequest(getContentParamZodSchema),
   contentController.deleteContentById
 )
