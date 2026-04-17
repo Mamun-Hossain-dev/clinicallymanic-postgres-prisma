@@ -16,6 +16,8 @@ model User {
   isSubscribed         Boolean   @default(false)
   posts                Post[]
   banners              Banner[]
+  events               Event[]
+  contents             Content[]
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 

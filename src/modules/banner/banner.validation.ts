@@ -48,13 +48,3 @@ export const getAllBannerQueryZodSchema = z.object({
     sortOrder: z.enum(['asc', 'desc']).optional(),
   }),
 })
-
-export type CreateBannerInput = z.infer<typeof createBannerZodSchema>['body']
-export type UpdateBannerInput = z.infer<typeof updateBannerZodSchema>['body']
-export type GetAllBannerQuery = z.infer<typeof getAllBannerQueryZodSchema>['query']
-
-export type BannerFilterOptions = Pick<GetAllBannerQuery, 'searchTerm' | 'category' | 'status'>
-export type BannerPaginationOptions = Pick<
-  GetAllBannerQuery,
-  'page' | 'limit' | 'sortBy' | 'sortOrder'
->

@@ -1,0 +1,10 @@
+model Newsletter {
+  id    String @id @default(uuid())
+  email String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt(sort: Desc)])
+  @@map("newsletters")
+}

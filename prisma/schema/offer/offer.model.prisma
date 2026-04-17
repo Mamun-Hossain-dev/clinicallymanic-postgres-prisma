@@ -1,0 +1,22 @@
+model Offer {
+  id                String      @id @default(uuid())
+  title             String
+  description       String
+  discount          Float
+  validUntil        DateTime
+  thumbnailUrl      String?
+  thumbnailPublicId String?
+  status            OfferStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, validUntil])
+  @@index([createdAt(sort: Desc)])
+  @@map("offers")
+}
+
+enum OfferStatus {
+  ACTIVE
+  INACTIVE
+}
