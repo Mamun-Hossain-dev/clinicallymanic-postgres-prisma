@@ -37,11 +37,7 @@ const getEventById = catchAsync(async (req: Request, res: Response) => {
 })
 
 const getAllEvents = catchAsync(async (req: Request, res: Response) => {
-  const filterOptions = pick(req.query, [
-    'searchTerm',
-    'location',
-    'status',
-  ]) as EventFilterOptions
+  const filterOptions = pick(req.query, ['searchTerm', 'location', 'status']) as EventFilterOptions
 
   const paginationOptions = pick(req.query, [
     'page',

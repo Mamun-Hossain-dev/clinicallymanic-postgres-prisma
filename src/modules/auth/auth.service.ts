@@ -45,7 +45,7 @@ const loginUser = async (payload: LoginPayloadInput) => {
 
   const accessToken = jwtHelper.generateToken(
     {
-      userId: user.id,
+      id: user.id,
       role: user.role,
       email: user.email,
     },
@@ -55,7 +55,7 @@ const loginUser = async (payload: LoginPayloadInput) => {
 
   const refreshToken = jwtHelper.generateToken(
     {
-      userId: user.id,
+      id: user.id,
       role: user.role,
       email: user.email,
     },
@@ -78,18 +78,18 @@ const refreshToken = async (token: string) => {
     config.jwt.refreshSecret as Secret
   ) as JwtPayload
 
-  if (!verifiedToken.userId) {
+  if (!verifiedToken.id) {
     throw new AppError(401, 'Invalid refresh token')
   }
 
-  const user = await authRepository.findById(verifiedToken.userId)
+  const user = await authRepository.findById(verifiedToken.id)
   if (!user) {
     throw new AppError(404, 'User not found')
   }
 
   const accessToken = jwtHelper.generateToken(
     {
-      userId: user.id,
+      id: user.id,
       role: user.role,
       email: user.email,
     },
@@ -168,13 +168,13 @@ const resetPassword = async (email: string, newPassword: string) => {
 
   // Auto-login after reset
   const accessToken = jwtHelper.generateToken(
-    { userId: user.id, role: user.role, email: user.email },
+    { id: user.id, role: user.role, email: user.email },
     config.jwt.accessSecret as Secret,
     config.jwt.accessExpiresIn as SignOptions['expiresIn']
   )
 
   const newRefreshToken = jwtHelper.generateToken(
-    { userId: user.id, role: user.role, email: user.email },
+    { id: user.id, role: user.role, email: user.email },
     config.jwt.refreshSecret as Secret,
     config.jwt.refreshExpiresIn as SignOptions['expiresIn']
   )

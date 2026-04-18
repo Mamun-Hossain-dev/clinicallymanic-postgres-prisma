@@ -3,9 +3,13 @@ import { authRoutes } from '../modules/auth/auth.routes'
 import { bannerRoutes } from '../modules/banner/banner.routes'
 import { contactRoutes } from '../modules/contact/contact.routes'
 import { contentRoutes } from '../modules/content/content.routes'
+import { dashboardRoutes } from '../modules/dashboard/dashboard.routes'
 import { eventRoutes } from '../modules/event/event.routes'
 import { newsletterRoutes } from '../modules/newsletter/newsletter.routes'
 import { offerRoutes } from '../modules/offer/offer.routes'
+import { paymentRoutes } from '../modules/payment/payment.routes'
+import { shopRoutes } from '../modules/shop/shop.routes'
+import { subscriptionRoutes } from '../modules/subscription/subscription.routes'
 import { userRoutes } from '../modules/user/user.routes'
 
 const router = express.Router()
@@ -42,6 +46,22 @@ const moduleRoutes = [
   {
     path: '/contents',
     route: contentRoutes,
+  },
+  {
+    path: '/shop',
+    route: shopRoutes,
+  },
+  {
+    path: '/payments',
+    route: paymentRoutes,
+  },
+  {
+    path: '/subscriptions',
+    route: subscriptionRoutes,
+  },
+  {
+    path: '/dashboard',
+    route: dashboardRoutes,
   },
 ]
 

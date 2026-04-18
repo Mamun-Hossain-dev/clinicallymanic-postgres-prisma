@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit'
 import config from './config'
 import globalErrorHandler from './middlewares/globalErrorHandler'
 import notFound from './middlewares/notFound'
+import { paymentController } from './modules/payment/payment.controller'
 import router from './routes'
 
 const app = express()
@@ -23,6 +24,11 @@ app.use(
     windowMs: Number(config.rateLimit.window),
     max: Number(config.rateLimit.max),
   })
+)
+app.post(
+  '/api/v1/payments/webhooks/stripe',
+  express.raw({ type: 'application/json' }),
+  paymentController.handleStripeWebhook
 )
 app.use(express.json({ limit: '25kb' }))
 app.use(express.urlencoded({ extended: true, limit: '50kb' }))

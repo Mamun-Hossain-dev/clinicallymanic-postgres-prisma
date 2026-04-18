@@ -1,0 +1,86 @@
+model SubscriptionPlan {
+  id               String           @id @default(uuid())
+  name             String           @unique
+  description      String?
+  price            Decimal          @db.Decimal(10, 2)
+  currency         String           @default("usd")
+  interval         BillingInterval  @default(MONTHLY)
+  intervalCount    Int              @default(1)
+  trialDays        Int              @default(7)
+  features         PlanFeature[]    @default([])
+  stripeProductId  String?          @unique
+  stripePriceId    String?          @unique
+  isActive         Boolean          @default(true)
+  sortOrder        Int              @default(0)
+
+  subscriptions    UserSubscription[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([isActive, sortOrder])
+  @@map("subscription_plans")
+}
+
+model UserSubscription {
+  id                   String             @id @default(uuid())
+  status               SubscriptionStatus @default(INCOMPLETE)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  planId String
+  plan   SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  stripeSubscriptionId String?  @unique
+  stripeCustomerId     String?
+
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+
+  trialStart         DateTime?
+  trialEnd           DateTime?
+  isTrialing         Boolean   @default(false)
+
+  cancelAtPeriodEnd Boolean   @default(false)
+  canceledAt        DateTime?
+  endedAt           DateTime?
+
+  refunds  SubscriptionRefund[]
+
+  startedAt DateTime  @default(now())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([userId, status])
+  @@index([status, currentPeriodEnd])
+  @@index([deletedAt])
+  @@map("user_subscriptions")
+}
+
+model SubscriptionRefund {
+  id String @id @default(uuid())
+
+  subscriptionId String
+  subscription   UserSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  paymentTransactionId String?
+  paymentTransaction   PaymentTransaction? @relation(fields: [paymentTransactionId], references: [id], onDelete: SetNull)
+
+  originalAmount Decimal      @db.Decimal(10, 2)
+  refundedAmount Decimal      @db.Decimal(10, 2)
+  currency       String       @default("usd")
+  stripeRefundId String?      @unique
+  reason         String?
+  status         RefundStatus @default(PENDING)
+
+  requestedAt DateTime  @default(now())
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([subscriptionId, status])
+  @@map("subscription_refunds")
+}

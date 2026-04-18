@@ -41,8 +41,10 @@
     "http-status": "^2.1.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
     "pg": "^8.20.0",
     "streamifier": "^0.1.1",
+    "stripe": "^19.3.0",
     "winston": "^3.17.0",
     "zod": "^4.3.5"
   },
@@ -55,6 +57,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^25.0.9",
+    "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^7.0.9",
     "@types/pg": "^8.20.0",
     "@types/streamifier": "^0.1.2",

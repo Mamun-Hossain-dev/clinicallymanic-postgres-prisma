@@ -1,0 +1,87 @@
+model ShopProduct {
+  id             String            @id @default(uuid())
+  name           String
+  title          String
+  description    String
+  imageUrls      String[]          @default([])
+  imagePublicIds String[]          @default([])
+  sizes          String[]          @default([])
+  price          Decimal           @db.Decimal(10, 2)
+  type           ShopProductType   @default(STANDARD)
+  status         ShopProductStatus @default(ACTIVE)
+  details        String?
+  categories     ShopCategory[]    @default([])
+
+  createdById String
+  createdBy   User   @relation("ShopProductCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  orders     ShopOrder[]
+  payments   PaymentTransaction[]
+  purchasers User[]               @relation("ShopProductPurchasers")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdById])
+  @@index([status, type])
+  @@index([createdAt(sort: Desc)])
+  @@map("shop_products")
+}
+
+model ShopOrder {
+  id               String          @id @default(uuid())
+  productName      String
+  customerName     String
+  customerPhone    String?
+  customerEmail    String?
+  deliveryLocation String?
+  price            Decimal         @db.Decimal(10, 2)
+  currency         String          @default("usd")
+  orderDate        DateTime        @default(now())
+  size             String?
+  status           ShopOrderStatus @default(PENDING)
+  notes            String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   ShopProduct @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  payment PaymentTransaction?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([productId])
+  @@index([createdAt(sort: Desc)])
+  @@map("shop_orders")
+}
+
+enum ShopCategory {
+  MENS
+  WOMENS
+  CHILDRENS
+  ACCESSORIES
+  OTHER
+}
+
+enum ShopProductType {
+  STANDARD
+  EXCLUSIVE
+}
+
+enum ShopProductStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ShopOrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}

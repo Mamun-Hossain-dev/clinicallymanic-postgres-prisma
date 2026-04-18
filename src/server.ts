@@ -1,6 +1,7 @@
 import { Server } from 'http'
 import app from './app'
 import config from './config'
+import { startCronJobs } from './cron'
 import prisma from './lib/prisma'
 import logger from './utils/logger'
 
@@ -14,6 +15,8 @@ const main = async () => {
     server = app.listen(config.port, () => {
       logger.info(`Server is running on port ${config.port}`)
     })
+
+    startCronJobs()
   } catch (error) {
     logger.error('Failed to connect to the database', error)
     process.exit(1)

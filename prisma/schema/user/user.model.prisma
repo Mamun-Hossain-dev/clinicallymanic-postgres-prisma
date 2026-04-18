@@ -1,25 +1,31 @@
 model User {
-  id                   String    @id @default(uuid())
-  firstName            String
-  lastName             String?
-  email                String    @unique
-  password             String
-  role                 Role      @default(USER)
-  profileImage         String?
-  profileImagePublicId String?
-  bio                  String?
-  phone                String?
-  location             String?
-  otp                  String?
-  otpExpiry            DateTime?
-  verified             Boolean   @default(true)
-  isSubscribed         Boolean   @default(false)
-  posts                Post[]
-  banners              Banner[]
-  events               Event[]
-  contents             Content[]
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  id                    String               @id @default(uuid())
+  firstName             String
+  lastName              String?
+  email                 String               @unique
+  password              String
+  role                  Role                 @default(USER)
+  profileImage          String?
+  profileImagePublicId  String?
+  bio                   String?
+  phone                 String?
+  location              String?
+  otp                   String?
+  otpExpiry             DateTime?
+  verified              Boolean              @default(true)
+  isSubscribed          Boolean              @default(false)
+  stripeCustomerId      String?              @unique
+  posts                 Post[]
+  banners               Banner[]
+  events                Event[]
+  contents              Content[]
+  shopProducts          ShopProduct[]        @relation("ShopProductCreator")
+  shopOrders            ShopOrder[]
+  paymentTransactions   PaymentTransaction[]
+  purchasedShopProducts ShopProduct[]        @relation("ShopProductPurchasers")
+  subscriptions         UserSubscription[]
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
 
   @@index([verified, isSubscribed])
   @@index([createdAt(sort: Desc)])
