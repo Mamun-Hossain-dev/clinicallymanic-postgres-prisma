@@ -1,6 +1,6 @@
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import express, { Request, Response } from 'express'
+import express, { Request, Response, NextFunction } from 'express'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import swaggerUi from 'swagger-ui-express'
@@ -44,7 +44,7 @@ if (config.env === 'development') {
   // Disable CSP only for swagger docs route so swagger-ui assets load correctly
   app.use(
     '/api/v1/docs',
-    (_req, _res, next) => {
+    (_req: Request, _res: Response, next: NextFunction) => {
       // Allow swagger-ui inline scripts & styles
       next()
     },
