@@ -16,7 +16,9 @@ const validateRequest = (schema: ZodSchema) => {
       cookies: Request['cookies']
     }
 
-    req.body = parsed.body
+    if (parsed.body) {
+      req.body = parsed.body
+    }
 
     if (parsed.query && typeof parsed.query === 'object') {
       Object.assign(req.query, parsed.query)

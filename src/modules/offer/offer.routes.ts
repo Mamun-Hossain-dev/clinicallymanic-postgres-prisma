@@ -4,6 +4,7 @@ import validateRequest from '../../middlewares/validateRequest'
 import { fileUploader } from '../../utils/fileUpload'
 import { userRole } from '../user/user.constants'
 import { offerController } from './offer.controller'
+import parseData from '../../middlewares/parseData'
 import {
   createOfferZodSchema,
   getAllOfferQueryZodSchema,
@@ -76,6 +77,7 @@ router.post(
   '/',
   auth(userRole.admin),
   fileUploader.upload.single('thumbnail'),
+  parseData,
   validateRequest(createOfferZodSchema),
   offerController.createOffer
 )
@@ -197,6 +199,7 @@ router.patch(
   '/:id',
   auth(userRole.admin),
   fileUploader.upload.single('thumbnail'),
+  parseData,
   validateRequest(getOfferParamZodSchema),
   validateRequest(updateOfferZodSchema),
   offerController.updateOfferById

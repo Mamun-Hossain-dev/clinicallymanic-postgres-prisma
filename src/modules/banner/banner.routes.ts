@@ -2,6 +2,7 @@ import express from 'express'
 import validateRequest from '../../middlewares/validateRequest'
 import { fileUploader } from '../../utils/fileUpload'
 import { bannerController } from './banner.controller'
+import parseData from '../../middlewares/parseData'
 import {
   createBannerZodSchema,
   getAllBannerQueryZodSchema,
@@ -68,6 +69,7 @@ const router = express.Router()
 router.post(
   '/',
   fileUploader.upload.single('bannerImage'),
+  parseData,
   validateRequest(createBannerZodSchema),
   bannerController.createBanner
 )
@@ -189,6 +191,7 @@ router.get('/:id', validateRequest(getBannerParamZodSchema), bannerController.ge
 router.patch(
   '/:id',
   fileUploader.upload.single('bannerImage'),
+  parseData,
   validateRequest(getBannerParamZodSchema),
   validateRequest(updateBannerZodSchema),
   bannerController.updateBannerById

@@ -4,6 +4,7 @@ import validateRequest from '../../middlewares/validateRequest'
 import { fileUploader } from '../../utils/fileUpload'
 import { userRole } from '../user/user.constants'
 import { eventController } from './event.controller'
+import parseData from '../../middlewares/parseData'
 import {
   createEventZodSchema,
   getAllEventQueryZodSchema,
@@ -85,6 +86,7 @@ router.post(
   '/',
   auth(userRole.admin),
   fileUploader.upload.single('thumbnail'),
+  parseData,
   validateRequest(createEventZodSchema),
   eventController.createEvent
 )
@@ -212,6 +214,7 @@ router.patch(
   '/:id',
   auth(userRole.admin),
   fileUploader.upload.single('thumbnail'),
+  parseData,
   validateRequest(getEventParamZodSchema),
   validateRequest(updateEventZodSchema),
   eventController.updateEventById

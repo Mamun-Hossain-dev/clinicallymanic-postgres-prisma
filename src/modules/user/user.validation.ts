@@ -10,6 +10,7 @@ export const userBaseSchema = z.object({
   profileImagePublicId: z.string().optional(),
   bio: z.string().optional(),
   phone: z.string().optional(),
+  phoneNumber: z.string().optional(),
   location: z.string().optional(),
   otp: z.string().optional(),
 })
@@ -25,6 +26,7 @@ export const updateUserZodSchema = z.object({
       lastName: true,
       bio: true,
       phone: true,
+      phoneNumber: true,
       location: true,
       profileImage: true,
     })
