@@ -8,6 +8,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(5000),
   DATABASE_URL: z.string().min(1, 'Database URL is required'),
+  DIRECT_URL: z.string().min(1, 'Direct database URL is required'),
   CLIENT_URL: z.string().default('http://localhost:3000'),
   BCRYPT_SALT_ROUNDS: z.coerce.number().default(10),
   ACCESS_TOKEN_SECRET: z.string().min(1, 'Access token secret is required'),
@@ -42,6 +43,7 @@ export default {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
   databaseUrl: envVars.DATABASE_URL,
+  directDatabaseUrl: envVars.DIRECT_URL,
   clientUrl: envVars.CLIENT_URL,
   bcryptSaltRounds: envVars.BCRYPT_SALT_ROUNDS,
   jwt: {
