@@ -44,7 +44,7 @@ const getAllBanners = async (
   filterOptions: BannerFilterOptions,
   paginationOptions: BannerPaginationOptions
 ) => {
-  const { searchTerm, ...filterData } = filterOptions
+  const { searchTerm, category, ...filterData } = filterOptions
   const { page, limit, skip, sortBy, sortOrder } = pagination(paginationOptions)
 
   const andConditions: Prisma.BannerWhereInput[] = []
@@ -59,10 +59,19 @@ const getAllBanners = async (
   }
 
   // Filter conditions
+  if (category) {
+    andConditions.push({
+      category: {
+        equals: category,
+        mode: 'insensitive',
+      },
+    })
+  }
+
   if (Object.keys(filterData).length) {
     const filterConditions = Object.entries(filterData).reduce<Prisma.BannerWhereInput[]>(
       (acc, [field, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
+        if (value !== undefined && value !== null) {
           acc.push({ [field]: value })
         }
         return acc

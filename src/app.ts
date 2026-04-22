@@ -8,6 +8,7 @@ import config from './config'
 import { swaggerSpec } from './config/swagger'
 import globalErrorHandler from './middlewares/globalErrorHandler'
 import notFound from './middlewares/notFound'
+import requestLogger from './middlewares/requestLogger'
 import { paymentController } from './modules/payment/payment.controller'
 import router from './routes'
 
@@ -35,6 +36,7 @@ app.post(
 app.use(express.json({ limit: '25kb' }))
 app.use(express.urlencoded({ extended: true, limit: '50kb' }))
 app.use(cookieParser(config.cookieSecret))
+app.use(requestLogger)
 
 // application routes(centralized router)
 app.use('/api/v1', router)

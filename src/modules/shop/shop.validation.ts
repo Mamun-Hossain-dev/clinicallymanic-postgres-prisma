@@ -12,18 +12,46 @@ const shopOrderStatusSchema = z.enum([
   'CANCELLED',
 ])
 
+const parseArrayInput = (value: unknown) => {
+  if (Array.isArray(value)) {
+    return value
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (!trimmed) {
+      return []
+    }
+
+    try {
+      const parsed = JSON.parse(trimmed)
+      return Array.isArray(parsed) ? parsed : [parsed]
+    } catch {
+      return [trimmed]
+    }
+  }
+
+  return value
+}
+
+const uppercaseStringInput = (value: unknown) =>
+  typeof value === 'string' ? value.trim().toUpperCase() : value
+
 export const shopProductBaseSchema = z.object({
   name: z.string().trim().min(2, 'at least 2 characters'),
   title: z.string().trim().min(2, 'at least 2 characters'),
   description: z.string().trim().min(5, 'at least 5 characters'),
   imageUrls: z.array(z.string().url()).optional(),
   imagePublicIds: z.array(z.string()).optional(),
-  sizes: z.array(z.string().trim().min(1)).default([]).optional(),
+  sizes: z.preprocess(parseArrayInput, z.array(z.string().trim().min(1))).default([]).optional(),
   price: z.coerce.number().positive('price must be greater than 0'),
-  type: shopProductTypeSchema.default('STANDARD').optional(),
-  status: shopProductStatusSchema.default('ACTIVE').optional(),
+  type: z.preprocess(uppercaseStringInput, shopProductTypeSchema).default('STANDARD').optional(),
+  status: z.preprocess(uppercaseStringInput, shopProductStatusSchema).default('ACTIVE').optional(),
   details: z.string().trim().optional(),
-  categories: z.array(shopCategorySchema).min(1, 'at least one category is required'),
+  categories: z.preprocess(
+    parseArrayInput,
+    z.array(z.preprocess(uppercaseStringInput, shopCategorySchema)).min(1, 'at least one category is required')
+  ),
 })
 
 export const createShopProductZodSchema = z.object({
@@ -43,9 +71,9 @@ export const getShopProductParamZodSchema = z.object({
 export const getAllShopProductQueryZodSchema = z.object({
   query: z.object({
     searchTerm: z.string().trim().optional(),
-    category: shopCategorySchema.optional(),
-    type: shopProductTypeSchema.optional(),
-    status: shopProductStatusSchema.optional(),
+    category: z.preprocess(uppercaseStringInput, shopCategorySchema).optional(),
+    type: z.preprocess(uppercaseStringInput, shopProductTypeSchema).optional(),
+    status: z.preprocess(uppercaseStringInput, shopProductStatusSchema).optional(),
     page: z.coerce.number().positive().optional(),
     limit: z.coerce.number().positive().max(100).optional(),
     sortBy: z

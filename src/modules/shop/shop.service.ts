@@ -190,10 +190,6 @@ const checkoutShopProduct = async (
     throw new AppError(404, 'Active shop product not found')
   }
 
-  if (product.type === 'EXCLUSIVE' && !user.isSubscribed) {
-    throw new AppError(403, 'Please subscribe to access this exclusive product')
-  }
-
   if (product.sizes.length && (!payload.size || !product.sizes.includes(payload.size))) {
     throw new AppError(400, 'Invalid product size')
   }
