@@ -1,8 +1,10 @@
 import express from 'express'
 import validateRequest from '../../middlewares/validateRequest'
+import auth from '../../middlewares/auth'
 import { fileUploader } from '../../utils/fileUpload'
 import { bannerController } from './banner.controller'
 import parseData from '../../middlewares/parseData'
+import { userRole } from '../user/user.constants'
 import {
   createBannerZodSchema,
   getAllBannerQueryZodSchema,
@@ -68,6 +70,7 @@ const router = express.Router()
  */
 router.post(
   '/',
+  auth(userRole.admin),
   fileUploader.upload.single('bannerImage'),
   parseData,
   validateRequest(createBannerZodSchema),
@@ -190,6 +193,7 @@ router.get('/:id', validateRequest(getBannerParamZodSchema), bannerController.ge
  */
 router.patch(
   '/:id',
+  auth(userRole.admin),
   fileUploader.upload.single('bannerImage'),
   parseData,
   validateRequest(getBannerParamZodSchema),
@@ -219,6 +223,11 @@ router.patch(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete('/:id', validateRequest(getBannerParamZodSchema), bannerController.deleteBannerById)
+router.delete(
+  '/:id',
+  auth(userRole.admin),
+  validateRequest(getBannerParamZodSchema),
+  bannerController.deleteBannerById
+)
 
 export const bannerRoutes = router
