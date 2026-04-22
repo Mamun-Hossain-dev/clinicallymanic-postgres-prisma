@@ -1,158 +1,203 @@
-# Node Express typescript postgres modular boilerplate
+# ClinicallyManic Backend API
 
-A production-ready, modular, and reusable Node.js Express starter package designed for building scalable SaaS applications. Built with TypeScript, clean architecture, and best practices in mind.
+Backend service for the ClinicallyManic platform. This project is built with Express, TypeScript, Prisma, and PostgreSQL, and exposes REST APIs for authentication, users, content, banners, offers, events, subscriptions, payments, and the admin dashboard.
 
-## 🚀 Features
+## Tech Stack
 
-- **Modular Architecture**: Feature-based modules (Controller, Service, Model, Validation, Interface, Routes) for better scalability.
-- **Production-Grade Authentication**: robust JWT-based authentication (Access & Refresh Tokens) with secure cookie handling.
-- **Strict Validation**: Zod-based schema validation for request bodies, queries, and params.
-- **Centralized Error Handling**: Global error handler catching Zod, Prisma, and App errors with consistent responses.
-- **Security First**: Helmet protection, Rate limiting, CORS configuration, and Data sanitization.
-- **Database Best Practices**: PostgreSQL & Prisma ORM with optimized connection pooling, proper indexing, and schema design.
-- **File Uploads**: Integrated Multer and Cloudinary for secure file storage.
-- **Logging**: Production-ready logging with Winston.
-- **Developer Experience**: ESLint, Prettier, Husky (optional setup), and typed configurations.
-- **Email & OTP**: Built-in utilities for sending emails and handling One-Time Passwords (OTP).
+- Node.js
+- Express 5
+- TypeScript
+- Prisma ORM
+- PostgreSQL
+- Zod
+- JWT authentication
+- Swagger UI
+- Winston logger
+- Stripe
+- Cloudinary
+- Nodemailer
 
-## 📂 Project Structure
+## Key Features
 
-```
+- Modular feature-based backend structure
+- Prisma + PostgreSQL database integration
+- Zod-based request validation
+- JWT auth with access and refresh tokens
+- Role/feature-based middleware support
+- Stripe webhook support for payments
+- Swagger API documentation in development mode
+- Centralized error handling
+- Rate limiting, CORS, Helmet, and cookie parsing
+- Cron job support for subscription-related tasks
+
+## Project Structure
+
+```text
+prisma/
+├── migrations/         # Prisma migration history
+└── schema/             # Split Prisma schema files by domain
+
 src/
-├── config/             # Environment configuration (Zod validated)
-├── errors/             # Custom Error classes and handlers
-├── interface/          # Global interfaces
-├── middlewares/        # Express middlewares (Auth, Validation, Errors)
-├── modules/            # Feature modules (User, Auth, etc.)
+├── config/         # Env config and Swagger config
+├── cron/           # Scheduled jobs
+├── errors/         # Custom error helpers
+├── interface/      # Shared interfaces
+├── lib/            # Prisma client setup
+├── middlewares/    # Auth, validation, error handling, etc.
+├── modules/        # Feature modules
 │   ├── auth/
+│   ├── banner/
+│   ├── contact/
+│   ├── content/
+│   ├── dashboard/
+│   ├── event/
+│   ├── newsletter/
+│   ├── offer/
+│   ├── payment/
+│   ├── shop/
+│   ├── subscription/
 │   └── user/
-├── routes/             # Centralized router
-├── utils/              # Shared utilities (Logger, Pick, Pagination, etc.)
-├── app.ts              # Express app setup
-└── server.ts           # Entry point (Database connection & Server start)
+├── routes/         # Central route registry
+├── utils/          # Shared helpers
+├── app.ts          # Express app configuration
+└── server.ts       # Server bootstrap
+
+package.json
+README.md
 ```
 
-## 🛠️ Installation
+## Available Modules
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd node-express-modular-starter
-   ```
+All routes are mounted under `/api/v1`.
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+- `/auth`
+- `/users`
+- `/banners`
+- `/contacts`
+- `/offers`
+- `/events`
+- `/newsletters`
+- `/contents`
+- `/shop`
+- `/payments`
+- `/subscriptions`
+- `/dashboard`
 
-3. **Set up Environment Variables:**
-   Copy `.env.example` to `.env` and fill in the required values.
-   ```bash
-   cp .env.example .env
-   ```
+## Local Setup
 
-   **Required Variables:**
-   - `DATABASE_URL`: Your PostgreSQL connection string.
-   - `ACCESS_TOKEN_SECRET` / `REFRESH_TOKEN_SECRET`: Secrets for JWT.
-   - `CLOUDINARY_*`: Cloudinary credentials for file uploads.
-
-4. **Run the server:**
-   ```bash
-   npm run dev
-   ```
-
-## 📜 Scripts
-
-- `npm run dev`: Start development server with hot-reload.
-- `npm run build`: Compile TypeScript to JavaScript.
-- `npm start`: Start the production server (after build).
-- `npm run lint`: Run ESLint.
-- `npm run lint:fix`: Fix linting errors.
-- `npm run format`: Format code with Prettier.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please fork the repository and submit a pull request.
-
-## 📄 License
-
-This project is licensed under the ISC License.
-
-## Verification Results
-✅ npx prisma generate — Prisma Client generated
-✅ npx tsc --noEmit — Zero TypeScript errors
-
-## Next Steps (User Action Required)
-Set up PostgreSQL and add your connection string to `.env`:
-
-```env
-DATABASE_URL=postgresql://username:password@localhost:5432/mydb?schema=public
-```
-
-Run the initial migration:
+1. Clone the repository and move into the backend folder.
 
 ```bash
-npx prisma migrate dev --name init
+git clone <repository-url>
+cd clinicallymanic-project/clinicallymanic-postgres-prisma
 ```
 
-Start the dev server:
+2. Install dependencies.
+
+```bash
+npm install
+```
+
+3. Create a `.env` file in the project root and add the required environment variables.
+
+```env
+NODE_ENV=development
+PORT=5000
+
+DATABASE_URL=postgresql://username:password@localhost:5432/clinicallymanic?schema=public
+DIRECT_URL=postgresql://username:password@localhost:5432/clinicallymanic?schema=public
+
+CLIENT_URL=http://localhost:3000
+
+BCRYPT_SALT_ROUNDS=10
+
+ACCESS_TOKEN_SECRET=your_access_token_secret
+REFRESH_TOKEN_SECRET=your_refresh_token_secret
+ACCESS_TOKEN_EXPIRES_IN=1d
+REFRESH_TOKEN_EXPIRES_IN=365d
+
+EMAIL_FROM=example@email.com
+EMAIL_USER=example@email.com
+EMAIL_PASS=your_email_password
+EMAIL_PORT=587
+EMAIL_HOST=smtp.gmail.com
+
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+STRIPE_SECRET_KEY=your_stripe_secret
+STRIPE_WEBHOOK_SECRET=your_webhook_secret
+
+RATE_LIMIT_WINDOW=900000
+RATE_LIMIT_MAX=100
+
+COOKIE_SECRET=your_cookie_secret
+```
+
+4. Generate the Prisma client.
+
+```bash
+npx prisma generate
+```
+
+5. Run migrations.
+
+```bash
+npx prisma migrate dev
+```
+
+6. Start the development server.
 
 ```bash
 npm run dev
 ```
 
-Test endpoints with Postman/curl:
+After the server starts, you should see:
 
-- `POST /api/v1/auth/register` — register a user
-- `POST /api/v1/auth/login` — login and get tokens
-- `GET /api/v1/users` — list users
-- `POST /api/v1/posts` — create a post (auth required)
-- `GET /api/v1/posts` — list posts
+```text
+Server is running on http://localhost:5000
+Swagger: http://localhost:5000/api/v1/docs
+```
 
-## 🛠️ Post-Run Instructions
+## API Docs
 
-Once you have verified that the project runs successfully locally (`npm run dev`), follow these steps:
+Swagger is available only in development mode.
 
-- **Check the Database Connection:**
-  Ensure your PostgreSQL database is running and `DATABASE_URL` is correctly configured in your `.env` file. You should be able to see the connected database tables using a tool like pgAdmin or DataGrip.
+- Swagger UI: `http://localhost:5000/api/v1/docs`
+- OpenAPI JSON: `http://localhost:5000/api/v1/docs.json`
 
-- **Explore Prisma Studio (Optional):**
-  You can run `npx prisma studio` to open a web interface where you can view and edit the data in your database visually.
+The root route also returns a small health-style response:
 
-- **Test the Endpoints:**
-  Make sure you pass the received token in the `Authorization` header as a Bearer token for protected routes.
+- `GET /`
 
-## ➕ How to Add New Features / Modules
+## Scripts
 
-Since this is a modular boilerplate, follow these steps to add any new feature (e.g., a "Product" or "Order" module):
+- `npm run dev` - Start the development server with hot reload
+- `npm run build` - Generate Prisma client and compile TypeScript
+- `npm start` - Run the compiled server from `dist`
+- `npm run prisma:generate` - Generate Prisma client
+- `npm run prisma:migrate` - Run Prisma development migrations
+- `npm run prisma:studio` - Open Prisma Studio
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix lint issues
+- `npm run format` - Format TypeScript source files
 
-1. **Update the Prisma Schema:**
-   - Go to `prisma/schema.prisma` and add your new model (e.g., `Product`).
-   - Run a migration to apply it to your database: `npx prisma migrate dev --name add_product`
-   - Generate the Prisma Client: `npx prisma generate`
+## Notes
 
-2. **Create the Module Folder:**
-   - Navigate to `src/modules/` and create a new folder for your feature (e.g., `src/modules/product`).
+- Swagger routes are enabled only when `NODE_ENV=development`.
+- Stripe webhook endpoint is mounted before JSON parsing at `/api/v1/payments/webhooks/stripe`.
+- A PostgreSQL database is required to boot the app successfully.
+- `DATABASE_URL` and `DIRECT_URL` are both required by the current config.
+- Cron jobs are initialized when the server starts.
 
-3. **Create Module Files:**
-   Inside your new module folder, create the necessary components:
-   - `product.interface.ts`: Define any specific TypeScript interfaces or types.
-   - `product.validation.ts`: Create Zod schemas to validate incoming request bodies.
-   - `product.service.ts`: Implement the business logic and database interactions using Prisma (`prisma.product...`).
-   - `product.controller.ts`: Handle incoming HTTP requests, call the service methods, and send back responses using `sendResponse()`.
-   - `product.route.ts`: Define the specific Express routes for the feature and attach middlewares.
+## Build For Production
 
-4. **Register the New Routes:**
-   - Finally, open `src/routes/index.ts` and add your new module's routes so the application recognizes them:
-   ```typescript
-   const moduleRoutes = [
-     // ...existing routes
-     {
-       path: '/products',
-       route: ProductRoutes,
-     },
-   ];
-   ```
+```bash
+npm run build
+npm start
+```
 
-5. **Test Your New Feature:**
-   Run `npm run dev` and test your newly created endpoints via Postman.
+## License
+
+ISC

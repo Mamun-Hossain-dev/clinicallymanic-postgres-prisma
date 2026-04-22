@@ -13,7 +13,11 @@ const main = async () => {
     logger.info('Connected to the database successfully')
 
     server = app.listen(config.port, () => {
-      logger.info(`Server is running on port ${config.port}`)
+      console.log(`Server is running on http://localhost:${config.port}`)
+
+      if (config.env === 'development') {
+        console.log(`Swagger: http://localhost:${config.port}/api/v1/docs`)
+      }
     })
 
     startCronJobs()
