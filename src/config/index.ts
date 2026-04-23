@@ -7,6 +7,11 @@ dotenv.config({ path: path.join(process.cwd(), '.env') })
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(5000),
+  LOG_LEVEL: z
+    .enum(['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly'])
+    .optional(),
+  LOG_MAX_FILES: z.string().default('14d'),
+  LOG_MAX_SIZE: z.string().default('20m'),
   DATABASE_URL: z.string().min(1, 'Database URL is required'),
   DIRECT_URL: z.string().min(1, 'Direct database URL is required'),
   CLIENT_URL: z.string().default('http://localhost:3000'),
@@ -42,6 +47,11 @@ const envVars = parseEnv.data
 export default {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
+  logLevel: envVars.LOG_LEVEL,
+  logs: {
+    maxFiles: envVars.LOG_MAX_FILES,
+    maxSize: envVars.LOG_MAX_SIZE,
+  },
   databaseUrl: envVars.DATABASE_URL,
   directDatabaseUrl: envVars.DIRECT_URL,
   clientUrl: envVars.CLIENT_URL,

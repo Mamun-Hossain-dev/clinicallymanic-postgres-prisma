@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Users\\USER\\Desktop\\projects\\ultimate-nodeJs\\postgresql tutorial\\project-clinicallymanic\\clinicallymanic-with-prisma\\logs\\.befd59dffd52225442243b53eba972021eab81f4-audit.json",
+    "files": [
+        {
+            "date": 1776953436710,
+            "name": "C:\\Users\\USER\\Desktop\\projects\\ultimate-nodeJs\\postgresql tutorial\\project-clinicallymanic\\clinicallymanic-with-prisma\\logs\\application-2026-04-23.log",
+            "hash": "81388083813630ca1b73ee652ba50437bd1c6ea81523375e61dc768a07b9e941"
+        }
+    ],
+    "hashType": "sha256"
+}

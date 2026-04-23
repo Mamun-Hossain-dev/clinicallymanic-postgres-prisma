@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
+import config from '../config'
 import logger from '../utils/logger'
 
 const requestLogger = (req: Request, res: Response, next: NextFunction) => {
@@ -20,7 +21,19 @@ const requestLogger = (req: Request, res: Response, next: NextFunction) => {
       return
     }
 
-    logger.info(message)
+    if (config.env !== 'production') {
+      logger.info(message)
+      return
+    }
+
+    if (res.statusCode >= 400) {
+      logger.warn(message)
+      return
+    }
+
+    if (durationMs >= 1000) {
+      logger.info(`[SLOW_API] ${message}`)
+    }
   })
 
   next()

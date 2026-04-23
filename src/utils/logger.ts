@@ -1,7 +1,9 @@
 import winston from 'winston'
 import path from 'path'
+import DailyRotateFile from 'winston-daily-rotate-file'
+import config from '../config'
 
-const { combine, timestamp, label, printf, colorize } = winston.format
+const { combine, timestamp, label, printf, colorize, errors, json } = winston.format
 
 const myFormat = printf(({ level, message, label, timestamp }) => {
   const date = new Date(timestamp as string)
@@ -11,20 +13,34 @@ const myFormat = printf(({ level, message, label, timestamp }) => {
   return `${date.toDateString()} ${hour}:${minutes}:${seconds} [${label}] ${level}: ${message}`
 })
 
+const logsDir = path.join(process.cwd(), 'logs')
+const isProduction = config.env === 'production'
+const loggerLevel = config.logLevel ?? (isProduction ? 'info' : 'debug')
+
 const logger = winston.createLogger({
-  level: 'info',
-  format: combine(label({ label: 'App' }), timestamp(), myFormat),
+  level: loggerLevel,
+  format: combine(label({ label: 'App' }), timestamp(), errors({ stack: true })),
   transports: [
     new winston.transports.Console({
-      format: combine(colorize(), myFormat),
+      format: isProduction
+        ? combine(label({ label: 'App' }), timestamp(), errors({ stack: true }), json())
+        : combine(colorize(), myFormat),
     }),
-    new winston.transports.File({
-      filename: path.join(process.cwd(), 'logs', 'error.log'),
+    new DailyRotateFile({
+      dirname: logsDir,
+      filename: 'error-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
       level: 'error',
+      maxSize: config.logs.maxSize,
+      maxFiles: config.logs.maxFiles,
     }),
-    new winston.transports.File({
-      filename: path.join(process.cwd(), 'logs', 'success.log'),
+    new DailyRotateFile({
+      dirname: logsDir,
+      filename: 'application-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
       level: 'info',
+      maxSize: config.logs.maxSize,
+      maxFiles: config.logs.maxFiles,
     }),
   ],
 })

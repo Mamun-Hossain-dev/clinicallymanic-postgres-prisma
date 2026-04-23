@@ -57,11 +57,12 @@ const uploadToCloudinary = (
         ...(isVideo || isCSV
           ? {}
           : {
-              transformation: {
-                width: 500,
-                height: 500,
-                crop: 'limit',
-              },
+              transformation: [
+                {
+                  fetch_format: 'auto',
+                  quality: 'auto:good',
+                },
+              ],
             }),
       },
       (error, result) => {
