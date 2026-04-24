@@ -1,6 +1,7 @@
 import { Server } from 'http'
 import app from './app'
 import config from './config'
+import { isRedisEnabled, verifyRedisConnection } from './config/redis'
 import { startCronJobs } from './cron'
 import prisma from './lib/prisma'
 import logger from './utils/logger'
@@ -11,6 +12,11 @@ const main = async () => {
   try {
     await prisma.$connect()
     logger.info('Connected to the database successfully')
+
+    if (isRedisEnabled()) {
+      await verifyRedisConnection()
+      logger.info('Connected to Upstash Redis successfully')
+    }
 
     server = app.listen(config.port, () => {
       console.log(`Server is running on http://localhost:${config.port}`)

@@ -30,6 +30,9 @@ const envSchema = z.object({
   CLOUDINARY_API_SECRET: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  REDIS_ENABLED: z.enum(['true', 'false']).default('false'),
+  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   RATE_LIMIT_WINDOW: z.coerce.number().default(900000), // 15 minutes
   RATE_LIMIT_MAX: z.coerce.number().default(100),
   COOKIE_SECRET: z.string().optional(),
@@ -77,6 +80,11 @@ export default {
   stripe: {
     secretKey: envVars.STRIPE_SECRET_KEY,
     webhookSecret: envVars.STRIPE_WEBHOOK_SECRET,
+  },
+  redis: {
+    enabled: envVars.REDIS_ENABLED === 'true',
+    url: envVars.UPSTASH_REDIS_REST_URL,
+    token: envVars.UPSTASH_REDIS_REST_TOKEN,
   },
   rateLimit: {
     window: envVars.RATE_LIMIT_WINDOW,

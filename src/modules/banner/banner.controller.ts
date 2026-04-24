@@ -8,7 +8,7 @@ import { BannerFilterOptions, BannerPaginationOptions } from './banner.interface
 const createBanner = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id as string
   const file = req.file
-  const payload = req.body.data ? JSON.parse(req.body.data) : req.body
+  const payload = req.body
 
   const result = await bannerService.createBanner(userId, payload, file as Express.Multer.File)
 
@@ -56,7 +56,7 @@ const getAllBanners = catchAsync(async (req: Request, res: Response) => {
 const updateBannerById = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id as string
   const file = req.file
-  const updateData = req.body.data ? JSON.parse(req.body.data) : req.body
+  const updateData = req.body
 
   const result = await bannerService.updateBannerById(id, file as Express.Multer.File, updateData)
 
