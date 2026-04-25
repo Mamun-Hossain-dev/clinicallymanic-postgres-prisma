@@ -32,6 +32,14 @@ export const cacheSet = async (key: string, value: unknown, ttl = DEFAULT_TTL) =
   await redis.set(key, value, { ex: ttl })
 }
 
+export const cacheSetNx = async (key: string, value: unknown, ttl = DEFAULT_TTL) => {
+  if (!isRedisEnabled()) return null
+
+  const redis = getRedisClient()
+  const result = await redis.set(key, value, { ex: ttl, nx: true })
+  return result === 'OK'
+}
+
 export const cacheDel = async (...keys: string[]) => {
   if (!isRedisEnabled() || keys.length === 0) return
 

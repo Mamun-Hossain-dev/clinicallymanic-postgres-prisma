@@ -3,10 +3,19 @@ import Stripe from 'stripe'
 import config from '../../config'
 import AppError from '../../errors/AppError'
 import prisma from '../../lib/prisma'
+import { cacheDel, cacheGet, cacheSet, cacheSetNx } from '../../utils/chache'
 import pagination from '../../utils/pagination'
 import { paymentStatusValues, paymentTypeValues } from './payment.constants'
 import { PaymentFilterOptions, PaymentPaginationOptions } from './payment.interface'
 import { paymentRepository } from './payment.repository'
+
+const STRIPE_WEBHOOK_PROCESSING_TTL = 60 * 5 // 5 minutes
+const STRIPE_WEBHOOK_PROCESSED_TTL = 60 * 60 * 24 // 24 hours
+
+const webhookCacheKey = {
+  processing: (eventId: string) => `stripe:webhook:event:${eventId}:processing`,
+  processed: (eventId: string) => `stripe:webhook:event:${eventId}:processed`,
+}
 
 const getStripeClient = () => {
   if (!config.stripe.secretKey) {
@@ -104,9 +113,7 @@ const handleShopCheckoutCompleted = async (session: Stripe.Checkout.Session) => 
   if (payment.status === 'SUCCEEDED') return { alreadyProcessed: true }
 
   const paymentIntentId =
-    typeof session.payment_intent === 'string'
-      ? session.payment_intent
-      : session.payment_intent?.id
+    typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id
 
   await prisma.$transaction(async tx => {
     await tx.paymentTransaction.update({
@@ -158,8 +165,7 @@ const handleSubscriptionCheckoutCompleted = async (session: Stripe.Checkout.Sess
   const stripe = getStripeClient()
   const stripeSub = await stripe.subscriptions.retrieve(stripeSubscriptionId)
 
-  const customerId =
-    typeof session.customer === 'string' ? session.customer : session.customer?.id
+  const customerId = typeof session.customer === 'string' ? session.customer : session.customer?.id
 
   const statusMap: Record<string, 'TRIALING' | 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'INCOMPLETE'> =
     {
@@ -412,6 +418,29 @@ const handleStripeWebhook = async (rawBody: Buffer, signature?: string | string[
     throw new AppError(400, `Webhook Error: ${message}`)
   }
 
+  const processedCacheKey = webhookCacheKey.processed(event.id)
+  const processingCacheKey = webhookCacheKey.processing(event.id)
+  const cachedProcessedEvent = await cacheGet<{ eventType: string; processedAt: string }>(
+    processedCacheKey
+  )
+
+  if (cachedProcessedEvent) {
+    return { received: true, duplicate: true, source: 'redis' }
+  }
+
+  const lockAcquired = await cacheSetNx(
+    processingCacheKey,
+    {
+      eventType: event.type,
+      receivedAt: new Date().toISOString(),
+    },
+    STRIPE_WEBHOOK_PROCESSING_TTL
+  )
+
+  if (lockAcquired === false) {
+    return { received: true, duplicate: true, inProgress: true, source: 'redis' }
+  }
+
   let webhookEvent
   try {
     webhookEvent = await prisma.paymentWebhookEvent.create({
@@ -424,8 +453,17 @@ const handleStripeWebhook = async (rawBody: Buffer, signature?: string | string[
     })
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      await Promise.all([
+        cacheSet(
+          processedCacheKey,
+          { eventType: event.type, processedAt: new Date().toISOString(), source: 'database' },
+          STRIPE_WEBHOOK_PROCESSED_TTL
+        ),
+        cacheDel(processingCacheKey),
+      ])
       return { received: true, duplicate: true }
     }
+    await cacheDel(processingCacheKey)
     throw error
   }
 
@@ -473,16 +511,24 @@ const handleStripeWebhook = async (rawBody: Buffer, signature?: string | string[
     }
 
     await markProcessed(result?.skipped ? 'SKIPPED' : 'PROCESSED')
+    await Promise.all([
+      cacheSet(
+        processedCacheKey,
+        { eventType: event.type, processedAt: new Date().toISOString() },
+        STRIPE_WEBHOOK_PROCESSED_TTL
+      ),
+      cacheDel(processingCacheKey),
+    ])
     return { received: true, ...result }
   } catch (error) {
     await prisma.paymentWebhookEvent.update({
       where: { id: webhookEvent.id },
       data: {
         status: 'FAILED',
-        errorMessage:
-          error instanceof Error ? error.message : 'Unknown webhook processing error',
+        errorMessage: error instanceof Error ? error.message : 'Unknown webhook processing error',
       },
     })
+    await cacheDel(processingCacheKey)
     throw error
   }
 }

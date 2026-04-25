@@ -26,6 +26,7 @@ Production-oriented backend service for the ClinicallyManic platform. The API is
 - Prisma schema is split by domain for maintainability.
 - PostgreSQL indexes are defined for high-read and high-filter tables.
 - Redis caching is implemented for frequently queried public modules.
+- Redis-backed webhook idempotency reduces duplicate Stripe event processing.
 - Stripe webhook route is mounted before JSON parsing to preserve raw payload verification.
 - Global error handling normalizes Prisma, Zod, validation, duplicate, and cast errors.
 - Cron jobs support subscription lifecycle maintenance.
@@ -65,6 +66,18 @@ List caches use a version key instead of expensive key scanning. On create, upda
 
 Each cache-enabled module logs cache hit/miss and timing information such as `totalMs` and `dbMs`. This lets us measure the real speed gain in production instead of guessing a percentage. On cache hit, the API skips the PostgreSQL query and returns the Redis value directly.
 
+### Stripe Webhook Idempotency
+
+Stripe webhook handling uses a two-layer idempotency strategy.
+
+- PostgreSQL stores every received Stripe event in `payment_webhook_events` with a unique `providerEventId`.
+- Redis creates a short-lived `stripe:webhook:event:{eventId}:processing` lock before DB processing starts.
+- Redis stores a longer-lived `stripe:webhook:event:{eventId}:processed` marker after successful or skipped processing.
+- Concurrent duplicate deliveries can return early from Redis instead of racing into database writes.
+- The database unique constraint remains the durable source of truth if Redis is disabled, cold, or expired.
+
+This pattern protects payment, order, and subscription updates from double-processing while still allowing failed webhook attempts to release the Redis processing lock for safe retry behavior.
+
 ### Database Indexing
 
 The Prisma schema includes indexes for common filtering, sorting, and ownership checks.
@@ -101,7 +114,7 @@ A duplicate such as another `exclusive` + `MONTHLY` is still rejected.
 - Request validation is centralized with Zod.
 - Errors are thrown with `AppError` and formatted globally.
 - Stripe checkout rows are seeded as pending transactions, then webhook events update payment and subscription state.
-- Webhook handling is idempotent where possible, skipping already-processed payments.
+- Webhook handling is idempotent with Redis in-flight locks plus durable database event IDs.
 - Media replacement deletes old Cloudinary assets to avoid orphaned files.
 - Auth middleware supports role-protected routes.
 - Feature-gating middleware can check active subscription plan features.
