@@ -7,3 +7,34 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 10000
+      - key: LOG_LEVEL
+        value: info
+      - key: BCRYPT_SALT_ROUNDS
+        value: 10
+      - key: ACCESS_TOKEN_EXPIRES_IN
+        value: 1d
+      - key: REFRESH_TOKEN_EXPIRES_IN
+        value: 365d
+      - key: RATE_LIMIT_WINDOW
+        value: 900000
+      - key: RATE_LIMIT_MAX
+        value: 100
+      - key: REDIS_ENABLED
+        value: false
+      # REQUIRED - Set these in Render dashboard:
+      # - DATABASE_URL (PostgreSQL connection string from Neon/Railway/etc)
+      # - DIRECT_URL (Direct database connection URL)
+      # - ACCESS_TOKEN_SECRET (random string for JWT)
+      # - REFRESH_TOKEN_SECRET (random string for JWT)
+      # - CLIENT_URL (frontend URL)
+      # OPTIONAL - If using email:
+      # - EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, EMAIL_FROM
+      # OPTIONAL - If using Cloudinary:
+      # - CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+      # OPTIONAL - If using Stripe:
+      # - STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+      # OPTIONAL - If using Redis:
+      # - REDIS_ENABLED: true
+      # - UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN
