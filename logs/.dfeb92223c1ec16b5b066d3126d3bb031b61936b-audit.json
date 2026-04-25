@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/home/mamun/Desktop/Projects/personal-learnings/clinicallymanic-project/clinicallymanic-postgres-prisma/logs/.dfeb92223c1ec16b5b066d3126d3bb031b61936b-audit.json",
+    "files": [
+        {
+            "date": 1777094525234,
+            "name": "/home/mamun/Desktop/Projects/personal-learnings/clinicallymanic-project/clinicallymanic-postgres-prisma/logs/error-2026-04-25.log",
+            "hash": "4ce330138bdad352c8a7d39bbd525a6ce82e9d0d0deec4430ca90018fb7fc264"
+        }
+    ],
+    "hashType": "sha256"
+}
