@@ -1,6 +1,6 @@
 model SubscriptionPlan {
   id               String           @id @default(uuid())
-  name             String           @unique
+  name             String
   description      String?
   price            Decimal          @db.Decimal(10, 2)
   currency         String           @default("usd")
@@ -20,6 +20,7 @@ model SubscriptionPlan {
   deletedAt DateTime?
 
   @@index([isActive, sortOrder])
+  @@unique([name, interval])
   @@map("subscription_plans")
 }
 

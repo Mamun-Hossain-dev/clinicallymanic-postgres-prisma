@@ -67,8 +67,13 @@ const ensureStripeCustomer = async (userId: string): Promise<string> => {
 // ---------- PLAN CRUD ----------
 
 const createPlan = async (payload: CreatePlanInput) => {
-  const existing = await subscriptionRepository.findPlanByName(payload.name)
-  if (existing) throw new AppError(400, 'A plan with this name already exists')
+  const existing = await subscriptionRepository.findPlanByNameAndInterval(
+    payload.name,
+    payload.interval
+  )
+  if (existing) {
+    throw new AppError(400, 'A plan with this name and billing interval already exists')
+  }
 
   const stripe = getStripeClient()
   const { unit, count } = intervalToStripe(payload.interval)

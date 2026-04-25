@@ -3,7 +3,9 @@ import Stripe from 'stripe'
 import config from '../../config'
 import AppError from '../../errors/AppError'
 import prisma from '../../lib/prisma'
+import { cacheDel, cacheGet, cacheSet } from '../../utils/chache'
 import { fileUploader } from '../../utils/fileUpload'
+import logger from '../../utils/logger'
 import pagination from '../../utils/pagination'
 import { shopOrderSearchableFields, shopProductSearchableFields } from './shop.constants'
 import {
@@ -14,6 +16,28 @@ import {
   ShopProductPaginationOptions,
 } from './shop.interface'
 import { shopRepository } from './shop.repository'
+
+const SHOP_PRODUCT_CACHE_TTL = 60 * 5 // 5 minutes
+const SHOP_PRODUCT_VERSION_TTL = 60 * 60 * 24 * 30 // 30 days
+const SHOP_PRODUCT_LIST_VERSION_KEY = 'shop:product:list:version'
+
+const cacheKey = {
+  productById: (id: string) => `shop:product:id:${id}`,
+  productList: (version: string, payload: object) =>
+    `shop:product:list:v${version}:${JSON.stringify(payload)}`,
+}
+
+const getShopProductListVersion = async () => {
+  const version = await cacheGet<string>(SHOP_PRODUCT_LIST_VERSION_KEY)
+  if (version !== null) return version
+
+  const initialVersion = '1'
+  await cacheSet(SHOP_PRODUCT_LIST_VERSION_KEY, initialVersion, SHOP_PRODUCT_VERSION_TTL)
+  return initialVersion
+}
+
+const invalidateShopProductLists = async () =>
+  cacheSet(SHOP_PRODUCT_LIST_VERSION_KEY, Date.now().toString(), SHOP_PRODUCT_VERSION_TTL)
 
 const getStripeClient = () => {
   if (!config.stripe.secretKey) {
@@ -56,7 +80,7 @@ const createShopProduct = async (
     throw new AppError(400, 'At least one product image is required')
   }
 
-  return shopRepository.createProduct({
+  const product = await shopRepository.createProduct({
     ...payload,
     imageUrls,
     imagePublicIds: imagePublicIds || [],
@@ -64,13 +88,36 @@ const createShopProduct = async (
       connect: { id: userId },
     },
   })
+
+  await invalidateShopProductLists()
+
+  return product
 }
 
 const getShopProductById = async (id: string) => {
+  const startedAt = Date.now()
+  const cachedProduct = await cacheGet<Awaited<ReturnType<typeof shopRepository.findProductById>>>(
+    cacheKey.productById(id)
+  )
+
+  if (cachedProduct) {
+    logger.info(
+      `[shop-product-cache] hit key=${cacheKey.productById(id)} totalMs=${Date.now() - startedAt}`
+    )
+    return cachedProduct
+  }
+
+  logger.info(`[shop-product-cache] miss key=${cacheKey.productById(id)}`)
+  const dbStartedAt = Date.now()
   const product = await shopRepository.findProductById(id)
   if (!product) {
     throw new AppError(404, 'Shop product not found')
   }
+
+  await cacheSet(cacheKey.productById(id), product, SHOP_PRODUCT_CACHE_TTL)
+  logger.info(
+    `[shop-product-cache] set key=${cacheKey.productById(id)} dbMs=${Date.now() - dbStartedAt} totalMs=${Date.now() - startedAt}`
+  )
 
   return product
 }
@@ -79,6 +126,32 @@ const getAllShopProducts = async (
   filterOptions: ShopProductFilterOptions,
   paginationOptions: ShopProductPaginationOptions
 ) => {
+  const startedAt = Date.now()
+  const listVersion = await getShopProductListVersion()
+  const listCachePayload = {
+    searchTerm: filterOptions.searchTerm ?? null,
+    category: filterOptions.category ?? null,
+    type: filterOptions.type ?? null,
+    status: filterOptions.status ?? null,
+    page: paginationOptions.page ?? 1,
+    limit: paginationOptions.limit ?? 10,
+    sortBy: paginationOptions.sortBy ?? 'createdAt',
+    sortOrder: paginationOptions.sortOrder ?? 'desc',
+  }
+  const listCacheKey = cacheKey.productList(listVersion, listCachePayload)
+
+  const cachedResult = await cacheGet<{
+    data: Awaited<ReturnType<typeof shopRepository.findProducts>>
+    meta: { total: number; page: number; limit: number; totalPages: number }
+  }>(listCacheKey)
+
+  if (cachedResult) {
+    logger.info(`[shop-product-cache] hit key=${listCacheKey} totalMs=${Date.now() - startedAt}`)
+    return cachedResult
+  }
+
+  logger.info(`[shop-product-cache] miss key=${listCacheKey}`)
+  const dbStartedAt = Date.now()
   const { searchTerm, category, ...filterData } = filterOptions
   const { page, limit, skip, sortBy, sortOrder } = pagination(paginationOptions)
 
@@ -123,7 +196,7 @@ const getAllShopProducts = async (
     shopRepository.countProducts(whereCondition),
   ])
 
-  return {
+  const response = {
     data: products,
     meta: {
       total,
@@ -132,6 +205,13 @@ const getAllShopProducts = async (
       totalPages: Math.ceil(total / limit),
     },
   }
+
+  await cacheSet(listCacheKey, response, SHOP_PRODUCT_CACHE_TTL)
+  logger.info(
+    `[shop-product-cache] set key=${listCacheKey} dbMs=${Date.now() - dbStartedAt} totalMs=${Date.now() - startedAt}`
+  )
+
+  return response
 }
 
 const updateShopProductById = async (
@@ -156,7 +236,10 @@ const updateShopProductById = async (
     finalPayload.imagePublicIds = uploadedImages.imagePublicIds
   }
 
-  return shopRepository.updateProduct(id, finalPayload)
+  const updatedProduct = await shopRepository.updateProduct(id, finalPayload)
+  await Promise.all([cacheDel(cacheKey.productById(id)), invalidateShopProductLists()])
+
+  return updatedProduct
 }
 
 const deleteShopProductById = async (id: string) => {
@@ -169,7 +252,10 @@ const deleteShopProductById = async (id: string) => {
     existingProduct.imagePublicIds.map(publicId => fileUploader.deleteFromCloudinary(publicId))
   )
 
-  return shopRepository.removeProduct(id)
+  const deletedProduct = await shopRepository.removeProduct(id)
+  await Promise.all([cacheDel(cacheKey.productById(id)), invalidateShopProductLists()])
+
+  return deletedProduct
 }
 
 const checkoutShopProduct = async (

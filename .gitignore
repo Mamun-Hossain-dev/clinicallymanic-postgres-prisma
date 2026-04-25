@@ -1,9 +1,10 @@
 node_modules
 instruction
 dist
-# .env
+.env
 coverage
 .DS_Store
 *.log
 
 /src/generated/prisma
+

@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import { BillingInterval, Prisma } from '@prisma/client'
 import prisma from '../../lib/prisma'
 
 const planInclude = {
@@ -32,8 +32,8 @@ const findPlanById = async (id: string) => {
   })
 }
 
-const findPlanByName = async (name: string) => {
-  return prisma.subscriptionPlan.findFirst({ where: { name, deletedAt: null } })
+const findPlanByNameAndInterval = async (name: string, interval: BillingInterval) => {
+  return prisma.subscriptionPlan.findFirst({ where: { name, interval, deletedAt: null } })
 }
 
 const updatePlan = async (id: string, data: Prisma.SubscriptionPlanUpdateInput) => {
@@ -126,7 +126,7 @@ const findRefundsBySubscriptionId = async (subscriptionId: string) => {
 export const subscriptionRepository = {
   createPlan,
   findPlanById,
-  findPlanByName,
+  findPlanByNameAndInterval,
   updatePlan,
   findManyPlans,
   countPlans,
